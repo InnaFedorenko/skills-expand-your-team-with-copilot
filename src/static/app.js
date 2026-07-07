@@ -304,6 +304,32 @@ document.addEventListener("DOMContentLoaded", () => {
     return details.schedule;
   }
 
+  // Build share metadata for each activity card
+  function getShareMetadata(activityName, details) {
+    const shareUrl = new URL(window.location.origin + window.location.pathname);
+    shareUrl.searchParams.set("activity", activityName);
+
+    return {
+      url: shareUrl.toString(),
+      text: `Check out "${activityName}" at Mergington High School! ${details.description}`,
+    };
+  }
+
+  // Generate social platform share links
+  function getSocialShareLinks(shareMetadata) {
+    const encodedUrl = encodeURIComponent(shareMetadata.url);
+    const encodedText = encodeURIComponent(shareMetadata.text);
+    const combinedTextAndUrl = encodeURIComponent(
+      `${shareMetadata.text} ${shareMetadata.url}`
+    );
+
+    return {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+      x: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+      whatsapp: `https://wa.me/?text=${combinedTextAndUrl}`,
+    };
+  }
+
   // Function to determine activity type (this would ideally come from backend)
   function getActivityType(activityName, description) {
     const name = activityName.toLowerCase();
@@ -498,6 +524,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
+    const shareMetadata = getShareMetadata(name, details);
+    const shareLinks = getSocialShareLinks(shareMetadata);
 
     // Create activity tag
     const tagHtml = `
@@ -568,6 +596,38 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `
         }
+      </div>
+      <div class="share-section">
+        <p><strong>Share with friends:</strong></p>
+        <div class="share-buttons">
+          <a
+            class="share-button share-facebook"
+            href="${shareLinks.facebook}"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Share ${name} on Facebook"
+          >
+            Facebook
+          </a>
+          <a
+            class="share-button share-x"
+            href="${shareLinks.x}"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Share ${name} on X"
+          >
+            X
+          </a>
+          <a
+            class="share-button share-whatsapp"
+            href="${shareLinks.whatsapp}"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Share ${name} on WhatsApp"
+          >
+            WhatsApp
+          </a>
+        </div>
       </div>
     `;
 
@@ -864,5 +924,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize app
   checkAuthentication();
   initializeFilters();
+  const sharedActivity = new URLSearchParams(window.location.search).get(
+    "activity"
+  );
+  if (sharedActivity) {
+    searchQuery = sharedActivity;
+    searchInput.value = sharedActivity;
+  }
   fetchActivities();
 });
